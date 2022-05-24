@@ -1,72 +1,38 @@
 <template>
   <q-page class="bg-grey-3">
-    <div class="q-pa-md">
-      <div style="width: 100%">
-        <q-chat-message
-          v-for="info in chatMessages"
-          :name="info.user"
-          :avatar="
-            info.user == 'jeton'
-              ? 'https://cdn.quasar.dev/img/avatar1.jpg'
-              : 'https://cdn.quasar.dev/img/avatar2.jpg'
-          "
-          :text="[info.message]"
-          :sent="info.user == 'jeton'"
-          :bg-color="info.user == 'jeton' ? 'primary' : 'success'"
-        />
+      <div class="row">
+          <q-input v-model="forward" placeholder="forward"/>
+          <q-btn @click="drive">Drive</q-btn>
+          <div>
+            {{forwardFromTopic}}
+          </div>
       </div>
-    </div>
-    <div class="absolute-bottom row">
-      <q-input
-        type="text"
-        class="col bg-white"
-        v-model="publishMessage"
-        outlined
-      />
-      <q-btn @click="publish" icon="send" color="primary"></q-btn>
-    </div>
   </q-page>
 </template>
-
 <script>
-import { client } from "../boot/mqtt-boot";
+import { client } from "../boot/mqtt-boot"
 export default {
-  created() {
+  created () {
     client.on("connect", () => {
-      console.log("Conntected!");
-      client.subscribe("topic", function (err) {
-        if (!err) {
-          let info = JSON.stringify({
-            user: "jeton",
-            message: "Hello mqtt",
-          });
-          client.publish("topic", info);
-        }
-      });
-    });
-
+      console.log("Conntected!")
+      client.subscribe("vichak/forward", function (err) {
+      })
+    })
     client.on("message", (topic, message) => {
-      console.log(`${topic} - ${message.toString()}`);
-      let info = JSON.parse(message.toString());
-      this.chatMessages.push(info);
-    });
+      console.log(`${topic} - ${message.toString()}`)
+      this.forwardFromTopic = message.toString()
+    })
   },
-  data() {
+  data () {
     return {
-      receivedMessage: "",
-      publishMessage: "",
-      chatMessages: [],
-    };
+      forward: 0,
+      forwardFromTopic: 0
+    }
   },
   methods: {
-    publish() {
-      let info = JSON.stringify({
-        user: "jeton",
-        message: this.publishMessage,
-      });
-      client.publish("topic", info);
-      this.publishMessage = "";
+    drive () {
+      client.publish("vichak/forward", this.forward)
     },
   },
-};
+}
 </script>
